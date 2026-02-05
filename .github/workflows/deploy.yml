@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ] # Runs every time you push to main
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -17,7 +17,18 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          # The script below runs inside your EC2 terminal
           script: |
-            cd /home/myapp
-            git pull origin main
+            # 1. Move to the correct project directory
+            cd /home/my-web-stack
+            
+            # 2. Force the local code to match GitHub exactly
+            git fetch origin main
+            git reset --hard origin/main
+            
+            # 3. Rebuild and restart the containers
+            # We use --build to ensure any code changes are baked into the image
             docker compose up -d --build
+            
+            # 4. Optional: Clean up old, unused Docker images to save space
+            docker image prune -f
