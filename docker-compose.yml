@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # --- DATABASE (Postgres) ---
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: my_database
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # --- BACKEND (Node.js API & Frontend) ---
+  app:
+    build: .
+    restart: always
+    environment:
+      DB_HOST: db
+      DB_USER: myuser
+      DB_PASSWORD: mysecretpassword
+      DB_NAME: my_database
+    depends_on:
+      - db
+
+  # --- DATABASE GUI (pgAdmin) ---
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: adminpassword
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+  # --- FRONT DOOR (Nginx) ---
+  nginx:
+    image: nginx:latest
+    restart: always
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "8080:80"
+    depends_on:
+      - app
+
+# --- EXTERNAL STORAGE DEFINITION ---
+# This part must be at the very bottom, at the left margin
+volumes:
+  postgres_data:

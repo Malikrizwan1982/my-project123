@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Management</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+        .container { max-width: 500px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #28a745; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; }
+        ul { list-style: none; padding: 0; }
+        li { background: #eee; margin: 5px 0; padding: 10px; border-radius: 4px; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Add New User</h2>
+        <input type="text" id="name" placeholder="Username">
+        <input type="email" id="email" placeholder="Email">
+        <button onclick="addUser()">Save User</button>
+
+        <h2>Existing Users</h2>
+        <ul id="userList"></ul>
+    </div>
+
+    <script>
+        async function loadUsers() {
+            const res = await fetch('/api/users');
+            const users = await res.json();
+            const list = document.getElementById('userList');
+            list.innerHTML = users.map(u => `<li>${u.username} (${u.email})</li>`).join('');
+        }
+
+        async function addUser() {
+            const username = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email })
+            });
+            loadUsers(); // Refresh the list
+        }
+
+        loadUsers(); // Initial load
+    </script>
+</body>
+</html>
