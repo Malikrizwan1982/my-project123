@@ -10,6 +10,16 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+      
+      - name: Post-Deployment Health Check
+        run: |
+          echo "Waiting 15 seconds for containers to settle..."
+          sleep 15
+          # --fail makes curl return an error code if the HTTP status is 400 or 500+
+          # --silent hides the progress bar
+          # --show-error ensures we see why it failed in the logs
+          curl --fail --silent --show-error http://${{ secrets.EC2_HOST }}:8080/api/users || exit 1
+          echo "Health Check Passed!"
 
       - name: SSH into EC2 and Deploy
         uses: appleboy/ssh-action@master
